@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Coord from "./coord";
-import { directionToString } from "./direction";
+import GuessTable from "./GuessTable";
+import { pathsAreEqual } from "./path";
 import { generatePath } from "./pathGenerator";
 
 const CELL_SIZE = 100;
@@ -21,27 +22,6 @@ const coordToPosition = (coord) => {
     coord.column * CELL_SIZE + CELL_SIZE / 2,
     coord.row * CELL_SIZE + CELL_SIZE / 2,
   ];
-};
-
-const coordPathToDirectionList = (path) => {
-  const directionList = [];
-  for (let c = 1; c < path.length; c++) {
-    const direction = Coord.relativeDirection(path[c - 1], path[c]);
-    directionList.push(direction);
-  }
-  return directionList;
-};
-
-const pathsAreEqual = (p, q) => {
-  if (p.length !== q.length) {
-    return false;
-  }
-  for (let c = 0; c < p.length; c++) {
-    if (!Coord.isEqual(p[c], q[c])) {
-      return false;
-    }
-  }
-  return true;
 };
 
 const drawPath = (ctx, coords) => {
@@ -68,7 +48,6 @@ const endCoord = new Coord(3, 3);
 // ];
 
 const secretPath = generatePath(COLUMNS, ROWS, [startCoord], endCoord);
-const secretPathDirectionList = coordPathToDirectionList(secretPath);
 
 function App() {
   const canvasRef = useRef(null);
@@ -160,19 +139,37 @@ function App() {
       ctx,
       startCoord.column * CELL_SIZE + CELL_SIZE / 2,
       startCoord.row * CELL_SIZE + CELL_SIZE / 2,
-      CELL_SIZE / 2
+      CELL_SIZE / 6
     );
+
     // End circle
     drawCircle(
       ctx,
       endCoord.column * CELL_SIZE + CELL_SIZE / 2,
       endCoord.row * CELL_SIZE + CELL_SIZE / 2,
-      CELL_SIZE / 2
+      CELL_SIZE / 6
     );
 
     // Path
     drawPath(ctx, selectedPath);
     // drawPath(ctx, secretPath);
+
+    ctx.font = "50px Arial";
+    const grad = ctx.createLinearGradient(0, 0, 280, 0);
+    grad.addColorStop(0, "lightblue");
+    grad.addColorStop(1, "darkblue");
+    ctx.fillStyle = grad;
+
+    ctx.fillText(
+      "Start",
+      startCoord.column * CELL_SIZE,
+      (startCoord.row + 1) * CELL_SIZE
+    );
+    ctx.fillText(
+      "End",
+      endCoord.column * CELL_SIZE,
+      (endCoord.row + 1) * CELL_SIZE
+    );
   }, [canvasRef, selectedCell, selectedPath, win]);
 
   return (
@@ -184,28 +181,11 @@ function App() {
         height={CANVAS_HEIGHT}
         style={{ border: "4px solid pink" }}
       />
-      <ol>
-        {guessedPaths.map((guessedPath) => {
-          const dirList = coordPathToDirectionList(guessedPath);
-          return (
-            <li style={{ flexDirection: "row" }}>
-              {dirList.map((dir, index) => {
-                const isCorrect = dir === secretPathDirectionList[index];
-                return (
-                  <span
-                    style={{
-                      marginRight: "8px",
-                      backgroundColor: isCorrect ? "green" : "transparent",
-                    }}
-                  >
-                    {directionToString(dir)}
-                  </span>
-                );
-              })}
-            </li>
-          );
-        })}
-      </ol>
+      <GuessTable
+        secretPath={secretPath}
+        guessedPaths={guessedPaths}
+        currGuess={selectedPath}
+      />
       {!!win && <h1>You guessed the path in {guessedPaths.length} tries</h1>}
     </div>
   );
