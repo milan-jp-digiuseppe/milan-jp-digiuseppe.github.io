@@ -1,11 +1,11 @@
 import { directionToString } from "./direction";
-import { coordPathToDirectionList } from "./path";
 
-const GuessRow = ({ guessedPath, secretPathDirectionList, isCurrentGuess }) => {
-  const dirList = coordPathToDirectionList(guessedPath);
+const GuessRow = ({ guessedPath, secretPath, isCurrentGuess }) => {
+  const secretPathDirectionList = secretPath.toDirectionList();
+
   return (
     <tr>
-      {dirList.map((dir, index) => {
+      {guessedPath.toDirectionList().map((dir, index) => {
         const isCorrect = dir === secretPathDirectionList[index];
         return (
           <td
@@ -28,19 +28,14 @@ const GuessRow = ({ guessedPath, secretPathDirectionList, isCurrentGuess }) => {
 };
 
 const GuessTable = ({ secretPath, guessedPaths, currGuess }) => {
-  const secretPathDirectionList = coordPathToDirectionList(secretPath);
-
   return (
     <table>
       {guessedPaths.map((guessedPath) => (
-        <GuessRow
-          guessedPath={guessedPath}
-          secretPathDirectionList={secretPathDirectionList}
-        />
+        <GuessRow guessedPath={guessedPath} secretPath={secretPath} />
       ))}
       <GuessRow
         guessedPath={currGuess}
-        secretPathDirectionList={secretPathDirectionList}
+        secretPath={secretPath}
         isCurrentGuess={true}
       />
     </table>

@@ -1,22 +1,55 @@
 import Coord from "./coord";
 
-export const coordPathToDirectionList = (path) => {
-  const directionList = [];
-  for (let c = 1; c < path.length; c++) {
-    const direction = Coord.relativeDirection(path[c - 1], path[c]);
-    directionList.push(direction);
-  }
-  return directionList;
-};
+class Path {
+  steps; // Coord[]
 
-export const pathsAreEqual = (p, q) => {
-  if (p.length !== q.length) {
-    return false;
+  constructor(steps) {
+    this.steps = steps;
   }
-  for (let c = 0; c < p.length; c++) {
-    if (!Coord.isEqual(p[c], q[c])) {
+
+  static isEqual(p, q) {
+    if (p.length() !== q.length()) {
       return false;
     }
+    for (let s = 0; s < p.length(); s++) {
+      if (!Coord.isEqual(p.steps[s], q.steps[s])) {
+        return false;
+      }
+    }
+    return true;
   }
-  return true;
-};
+
+  length() {
+    return this.steps.length;
+  }
+
+  firstStep() {
+    return this.steps[0];
+  }
+
+  lastStep() {
+    return this.steps[this.length() - 1];
+  }
+
+  findStep(step) {
+    return this.steps.findIndex((s) => Coord.isEqual(s, step));
+  }
+
+  toDirectionList() {
+    const directionList = [];
+    for (let s = 1; s < this.steps.length; s++) {
+      const direction = Coord.relativeDirection(
+        this.steps[s - 1],
+        this.steps[s]
+      );
+      directionList.push(direction);
+    }
+    return directionList;
+  }
+
+  toString() {
+    return this.steps.map((s) => s.toString()).join(" ");
+  }
+}
+
+export default Path;
