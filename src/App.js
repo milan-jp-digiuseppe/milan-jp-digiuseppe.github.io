@@ -3,8 +3,9 @@ import PuzzleBoard from "./PuzzleBoard";
 import PuzzleConfig from "./puzzleConfig";
 
 const App = () => {
-  const config = PuzzleConfig.deserialize(dailyPuzzles[1]);
-  console.log(config.toString());
+  const today = new Date();
+  const dailyPuzzleIndex = (today.getDay() + 6) % 7;
+  const config = PuzzleConfig.deserialize(dailyPuzzles[dailyPuzzleIndex]);
 
   return (
     <PuzzleBoard
