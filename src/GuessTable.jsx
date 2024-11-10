@@ -36,11 +36,13 @@ const GuessTable = ({ secretPath, guessedPaths, currGuess }) => {
             secretPath={secretPath}
           />
         ))}
-        <GuessRow
-          guessedPath={currGuess}
-          secretPath={secretPath}
-          isCurrentGuess={true}
-        />
+        {!!currGuess && (
+          <GuessRow
+            guessedPath={currGuess}
+            secretPath={secretPath}
+            isCurrentGuess={true}
+          />
+        )}
       </tbody>
     </table>
   );

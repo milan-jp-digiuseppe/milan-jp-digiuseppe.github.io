@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Coord from "./coord";
 import GuessTable from "./GuessTable";
 import Path from "./path";
-
-const CELL_SIZE = 100;
+import { useMeasure } from "@uidotdev/usehooks";
 
 const drawCircle = (ctx, x, y, rad) => {
   ctx.beginPath();
@@ -11,28 +10,15 @@ const drawCircle = (ctx, x, y, rad) => {
   ctx.stroke();
 };
 
-const coordToPosition = (coord) => {
-  return [
-    coord.column * CELL_SIZE + CELL_SIZE / 2,
-    coord.row * CELL_SIZE + CELL_SIZE / 2,
-  ];
-};
-
-const drawPath = (ctx, coords) => {
-  if (coords.length === 0) {
-    return;
-  }
-  ctx.beginPath();
-  ctx.moveTo(...coordToPosition(coords[0]));
-  for (let c = 1; c < coords.length; c++)
-    ctx.lineTo(...coordToPosition(coords[c]));
-  ctx.stroke();
-};
-
 const PuzzleBoard = ({
   config, // PuzzleConfig
 }) => {
   const { numColumns, numRows, startCoord, endCoord, secretPath } = config;
+
+  const [ref, { width: containerWidth }] = useMeasure();
+  console.log({ containerWidth });
+  // const CELL_SIZE = containerWidth / numColumns;
+  const CELL_SIZE = 100;
 
   const CANVAS_WIDTH = numColumns * CELL_SIZE;
   const CANVAS_HEIGHT = numRows * CELL_SIZE;
@@ -47,7 +33,6 @@ const PuzzleBoard = ({
     (nextStep) => {
       const foundStepIndex = selectedPath.findStep(nextStep);
       if (foundStepIndex !== -1) {
-        console.warn("coord exists in path");
         setSelectedPath(
           (currPath) => new Path(currPath.steps.slice(0, foundStepIndex + 1))
         );
@@ -56,7 +41,6 @@ const PuzzleBoard = ({
 
       const lastStep = selectedPath.lastStep();
       if (!Coord.isAdjacent(nextStep, lastStep)) {
-        console.warn("coords are not adjacent", lastStep, nextStep);
         return;
       }
 
@@ -112,8 +96,8 @@ const PuzzleBoard = ({
 
   const onClickCanvas = useCallback(
     (event) => {
-      const x = event.pageX;
-      const y = event.pageY;
+      const x = event.offsetX;
+      const y = event.offsetY;
       const col = Math.floor(x / CELL_SIZE);
       const row = Math.floor(y / CELL_SIZE);
 
@@ -121,6 +105,29 @@ const PuzzleBoard = ({
     },
     [onSelectNextStep]
   );
+  useEffect(() => {
+    canvasRef.current.addEventListener("click", onClickCanvas);
+    const canvesRefInternal = canvasRef.current;
+    return () => canvesRefInternal.removeEventListener("click", onClickCanvas);
+  }, [onClickCanvas]);
+
+  const coordToPosition = (coord) => {
+    return [
+      coord.column * CELL_SIZE + CELL_SIZE / 2,
+      coord.row * CELL_SIZE + CELL_SIZE / 2,
+    ];
+  };
+
+  const drawPath = (ctx, coords) => {
+    if (coords.length === 0) {
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(...coordToPosition(coords[0]));
+    for (let c = 1; c < coords.length; c++)
+      ctx.lineTo(...coordToPosition(coords[c]));
+    ctx.stroke();
+  };
 
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
@@ -130,7 +137,6 @@ const PuzzleBoard = ({
     // Secret path
     if (win) {
       for (let coord of secretPath.steps) {
-        console.log(coord);
         ctx.fillRect(
           coord.column * CELL_SIZE,
           coord.row * CELL_SIZE,
@@ -197,6 +203,7 @@ const PuzzleBoard = ({
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     canvasRef,
+    drawPath,
     endCoord.column,
     endCoord.row,
     numColumns,
@@ -210,18 +217,21 @@ const PuzzleBoard = ({
   ]);
 
   return (
-    <div>
-      <canvas
-        ref={canvasRef}
-        onClick={onClickCanvas}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        style={{ border: "4px solid pink" }}
-      />
+    <div
+      ref={ref}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 16,
+        width: "100%",
+      }}
+    >
+      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
       <GuessTable
         secretPath={secretPath}
         guessedPaths={guessedPaths}
-        currGuess={selectedPath}
+        currGuess={win ? null : selectedPath}
       />
       {!!win && <h1>You guessed the path in {guessedPaths.length} tries</h1>}
     </div>

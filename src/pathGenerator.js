@@ -51,32 +51,22 @@ function shuffle(array) {
 }
 
 export const generatePath = (numColumns, numRows, currPath, endCoord) => {
-  console.log(
-    "currPath",
-    currPath.map((coord) => coord.toString())
-  );
   const currCoord = currPath[currPath.length - 1];
 
   const adjacentCoords = getAdjacentCoords(numColumns, numRows, currCoord);
   let potentialNextSteps = adjacentCoords.filter(
     (adj) => !currPath.some((pathCoord) => Coord.isEqual(pathCoord, adj))
   );
-  console.log(
-    "potentialNextSteps",
-    potentialNextSteps.map((coord) => coord.toString())
-  );
 
   // if no next steps
   // - go back a step (check if currPath is empty, in which case no path exists)
   if (adjacentCoords.length === 0) {
-    console.log("Path got stuck");
     return null;
   }
 
   shuffle(potentialNextSteps);
   for (let i = 0; i < potentialNextSteps.length; i++) {
     const nextStep = potentialNextSteps[i];
-    console.log("next step", nextStep.toString());
 
     const updatedPath = [...currPath, nextStep];
 
