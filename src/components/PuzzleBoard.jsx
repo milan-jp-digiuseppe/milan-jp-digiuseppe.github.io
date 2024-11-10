@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Coord from "./coord";
+import Coord from "../classes/coord";
 import GuessTable from "./GuessTable";
-import Path from "./path";
+import Path from "../classes/path";
 import { useMeasure } from "@uidotdev/usehooks";
 
 const drawCircle = (ctx, x, y, rad) => {

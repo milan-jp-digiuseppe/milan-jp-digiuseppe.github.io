@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import Icon from "./icons";
-import { DIRECTION } from "./direction";
+import Icon from "./Icon";
+import { DIRECTION } from "../classes/direction";
 
 const DirectionIcon = ({ direction, inverted, color }) => {
   const degrees = useMemo(() => {

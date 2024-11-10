@@ -1,6 +1,6 @@
 import { dailyPuzzles } from "./dailyPuzzles";
-import PuzzleBoard from "./PuzzleBoard";
-import PuzzleConfig from "./puzzleConfig";
+import PuzzleBoard from "./components/PuzzleBoard";
+import PuzzleConfig from "./classes/puzzleConfig";
 
 const App = () => {
   const today = new Date();
