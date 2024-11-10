@@ -16,6 +16,19 @@ class PuzzleConfig {
     this.endCoord = secretPath.lastStep();
   }
 
+  isCoordInBounds(coord) {
+    return (
+      0 <= coord.column &&
+      coord.column < this.numColumns &&
+      0 <= coord.row &&
+      coord.row < this.numRows
+    );
+  }
+
+  toString() {
+    return `${this.numColumns}x${this.numRows}: ` + this.secretPath.toString();
+  }
+
   serialize() {
     const config = new Array(this.numRows)
       .fill(0)
@@ -60,15 +73,9 @@ class PuzzleConfig {
     const sortedIndexedSteps = indexedSteps.sort((a, b) =>
       a.index < b.index ? -1 : 1
     );
-    console.log({ sortedIndexedSteps });
-
     const secretPath = sortedIndexedSteps.map((is) => is.coord);
 
     return new PuzzleConfig(numColumns, numRows, new Path(secretPath));
-  }
-
-  toString() {
-    return `${this.numColumns}x${this.numRows}: ` + this.secretPath.toString();
   }
 }
 

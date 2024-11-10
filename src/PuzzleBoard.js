@@ -30,20 +30,85 @@ const drawPath = (ctx, coords) => {
 };
 
 const PuzzleBoard = ({
-  numColumns,
-  numRows,
-  startCoord,
-  endCoord,
-  secretPath,
+  config, // PuzzleConfig
 }) => {
+  const { numColumns, numRows, startCoord, endCoord, secretPath } = config;
+
   const CANVAS_WIDTH = numColumns * CELL_SIZE;
   const CANVAS_HEIGHT = numRows * CELL_SIZE;
 
   const canvasRef = useRef(null);
-  const [selectedCell, setSelectedCell] = useState(startCoord);
   const [selectedPath, setSelectedPath] = useState(new Path([startCoord]));
+  const selectedCoord = selectedPath.lastStep();
   const [guessedPaths, setGuessedPaths] = useState([]);
   const [win, setWin] = useState(false);
+
+  const onSelectNextStep = useCallback(
+    (nextStep) => {
+      const foundStepIndex = selectedPath.findStep(nextStep);
+      if (foundStepIndex !== -1) {
+        console.warn("coord exists in path");
+        setSelectedPath(
+          (currPath) => new Path(currPath.steps.slice(0, foundStepIndex + 1))
+        );
+        return;
+      }
+
+      const lastStep = selectedPath.lastStep();
+      if (!Coord.isAdjacent(nextStep, lastStep)) {
+        console.warn("coords are not adjacent", lastStep, nextStep);
+        return;
+      }
+
+      const updatedPath = new Path([...selectedPath.steps, nextStep]);
+      setSelectedPath(updatedPath);
+
+      if (Coord.isEqual(nextStep, endCoord)) {
+        setGuessedPaths((curr) => [...curr, updatedPath]);
+
+        if (Path.isEqual(updatedPath, secretPath)) {
+          setWin(true);
+        } else {
+          setSelectedPath(new Path([startCoord]));
+        }
+      }
+    },
+    [endCoord, secretPath, selectedPath, startCoord]
+  );
+
+  const onKeyPress = useCallback(
+    (e) => {
+      let nextCoord;
+      switch (e.code) {
+        case "KeyW":
+        case "ArrowUp":
+          nextCoord = selectedCoord.above();
+          break;
+        case "KeyA":
+        case "ArrowLeft":
+          nextCoord = selectedCoord.left();
+          break;
+        case "KeyS":
+        case "ArrowDown":
+          nextCoord = selectedCoord.below();
+          break;
+        case "KeyD":
+        case "ArrowRight":
+          nextCoord = selectedCoord.right();
+          break;
+        default:
+          return;
+      }
+      if (config.isCoordInBounds(nextCoord)) {
+        onSelectNextStep(nextCoord);
+      }
+    },
+    [config, onSelectNextStep, selectedCoord]
+  );
+  useEffect(() => {
+    document.addEventListener("keyup", onKeyPress);
+    return () => document.removeEventListener("keyup", onKeyPress);
+  }, [onKeyPress]);
 
   const onClickCanvas = useCallback(
     (event) => {
@@ -52,40 +117,9 @@ const PuzzleBoard = ({
       const col = Math.floor(x / CELL_SIZE);
       const row = Math.floor(y / CELL_SIZE);
 
-      const selectedCoord = new Coord(col, row);
-
-      const foundStepIndex = selectedPath.findStep(selectedCoord);
-      if (foundStepIndex !== -1) {
-        console.warn("coord exists in path");
-        setSelectedCell(new Coord(col, row));
-        setSelectedPath(
-          (currPath) => new Path(currPath.steps.slice(0, foundStepIndex + 1))
-        );
-        return;
-      }
-
-      const lastStep = selectedPath.lastStep();
-      if (!Coord.isAdjacent(selectedCoord, lastStep)) {
-        console.warn("coords are not adjacent", lastStep, selectedCoord);
-        return;
-      }
-
-      setSelectedCell(new Coord(col, row));
-      const updatedPath = new Path([...selectedPath.steps, selectedCoord]);
-      setSelectedPath(updatedPath);
-
-      if (Coord.isEqual(selectedCoord, endCoord)) {
-        setGuessedPaths((curr) => [...curr, updatedPath]);
-
-        if (Path.isEqual(updatedPath, secretPath)) {
-          setWin(true);
-        } else {
-          setSelectedPath(new Path([startCoord]));
-          setSelectedCell(startCoord);
-        }
-      }
+      onSelectNextStep(new Coord(col, row));
     },
-    [endCoord, secretPath, selectedPath, startCoord]
+    [onSelectNextStep]
   );
 
   useEffect(() => {
@@ -107,8 +141,8 @@ const PuzzleBoard = ({
     }
     // Selected
     ctx.fillRect(
-      selectedCell.column * CELL_SIZE,
-      selectedCell.row * CELL_SIZE,
+      selectedCoord.column * CELL_SIZE,
+      selectedCoord.row * CELL_SIZE,
       CELL_SIZE,
       CELL_SIZE
     );
@@ -168,7 +202,7 @@ const PuzzleBoard = ({
     numColumns,
     numRows,
     secretPath,
-    selectedCell,
+    selectedCoord,
     selectedPath,
     startCoord.column,
     startCoord.row,

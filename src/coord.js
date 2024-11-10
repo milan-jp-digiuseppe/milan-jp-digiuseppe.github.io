@@ -27,6 +27,22 @@ class Coord {
     return null;
   }
 
+  above() {
+    return new Coord(this.column, this.row - 1);
+  }
+
+  below() {
+    return new Coord(this.column, this.row + 1);
+  }
+
+  left() {
+    return new Coord(this.column - 1, this.row);
+  }
+
+  right() {
+    return new Coord(this.column + 1, this.row);
+  }
+
   toString() {
     return `[${this.column}, ${this.row}]`;
   }
