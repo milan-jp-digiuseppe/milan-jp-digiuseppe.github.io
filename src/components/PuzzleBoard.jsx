@@ -217,24 +217,28 @@ const PuzzleBoard = ({
   ]);
 
   return (
-    <div
-      ref={ref}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
-        width: "100%",
-      }}
-    >
-      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
-      <GuessTable
-        secretPath={secretPath}
-        guessedPaths={guessedPaths}
-        currGuess={win ? null : selectedPath}
-      />
+    <>
+      <div
+        ref={ref}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "flex-start",
+          gap: 48,
+          width: "100%",
+          margin: 48,
+        }}
+      >
+        <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+        <GuessTable
+          secretPath={secretPath}
+          guessedPaths={guessedPaths}
+          currGuess={win ? null : selectedPath}
+          style={{ flexGrow: 1 }}
+        />
+      </div>
       {!!win && <h1>You guessed the path in {guessedPaths.length} tries</h1>}
-    </div>
+    </>
   );
 };
 
